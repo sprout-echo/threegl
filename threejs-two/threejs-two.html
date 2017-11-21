@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>01.01 - WebGLRenderer - Skeleton</title>
+    <script src="../libs/three.js"></script>
+    <script src="../libs/stats.min.js"></script>
+    <script src="../libs/dat.gui.min.js"></script>
+    <style>
+    body{
+        margin:0;
+        padding:0;
+        overflow: hidden;
+    }
+        #canvas3d{
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas3d"></div>
+<script>
+
+    // global variables
+    var renderer;
+    var scene;
+    var camera;
+    var light;
+    var cube;
+    var stats;
+    var control;
+
+    function init() {
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        // 四个参数分别代表了摄像机的视角、宽高比、近和远两个视截面。
+        camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 1000);
+        // position and point the camera to the center of the scene
+        camera.position.x = 35;
+        camera.position.y = 20;
+        camera.position.z = 15;
+        camera.lookAt(scene.position);
+
+        // create a render, sets the background color and the size
+        renderer = new THREE.WebGLRenderer({antialias:true});
+        renderer.setClearColor(0x343434, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        //renderer.setSize('1000', '550');
+
+        // create a cube and add to scene
+        var cubeGeometry = new THREE.BoxGeometry(15,15,15,1,1,1);
+        var cubeMaterial = new THREE.MeshNormalMaterial({wireframe : true});  //材质
+
+        cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        var border = new THREE.EdgesHelper( cube,0xffff00 );  //添加边框
+        cube.name = 'cube';
+        scene.add(cube);
+        scene.add(border);
+
+        //圆柱体
+        var cylinderGeometry = new THREE.CylinderGeometry(8, 8,10,30,30);
+        var cylinderMaterial = new THREE.MeshNormalMaterial();
+        var cylinder = new THREE.Mesh(cylinderGeometry,cylinderMaterial);
+        cylinder.position.x = -10;
+        cylinder.position.y = -5;
+        cylinder.position.z = 25;
+        cylinder.castShadow = true;
+        cylinder.name = 'cylinder';
+        scene.add(cylinder);
+
+        //球体
+        var sphereGeometry = new THREE.SphereGeometry(7, 25, 25);
+        var sphereMaterial = new THREE.MeshLambertMaterial({color: 0x7777ff});
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+        // position the sphere
+        sphere.position.x = 0;
+        sphere.position.y = 0;
+        sphere.position.z = 0;
+        sphere.castShadow = true;
+
+        // add the sphere to the scene
+        scene.add(sphere);
+
+        //圆环
+        var torusGeometry = new THREE.TorusGeometry(10,3,20,20);
+        var torusMaterial = new THREE.MeshBasicMaterial();
+        var tours = new THREE.Mesh(torusGeometry,torusMaterial);
+        tours.position.x = 10;
+        tours.position.y = -10;
+        tours.position.z = -40;
+        tours.castShadow = true;
+        tours.name = 'tours';
+        scene.add(tours);
+
+        var texture = new THREE.ImageUtils.loadTexture("http://10.1.26.29:84/Brick-2399.jpg");
+        torusMaterial.map = texture;
+
+        //设置light
+        light = new THREE.DirectionalLight(0xff0000, 1.0, 0);
+        light.position.set( 200, 200, 200 );//设置光源向量
+        scene.add(light);
+
+        // add the output of the renderer to the html element
+        document.getElementById('canvas3d').appendChild(renderer.domElement);
+        stats = createStats();
+        document.getElementById('canvas3d').appendChild(stats.domElement);
+
+        control = new function (){
+            this.rotationSpeed = 0.005;
+            this.scale = 1;
+
+            this.rotationSpeed2 = 0.05;
+        }
+        addControls(control);
+
+        // call the render function
+        render();
+    }
+    function createStats() {
+        var stats = new Stats();
+        stats.setMode(0);
+
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '5px';
+
+        return stats;
+    }
+
+    function addControls(controlObject){
+        var gui = new dat.GUI();
+        gui.add(controlObject,'rotationSpeed',-0.1,0.1);
+        gui.add(controlObject, 'scale', 0.01, 2);
+
+        gui.add(controlObject, 'rotationSpeed2', -0.1, 0.1);
+    }
+
+    function render() {
+        renderer.render(scene, camera);
+        scene.getObjectByName('cube').rotation.x += control.rotationSpeed;
+        scene.getObjectByName('cube').scale.set(control.scale, control.scale, control.scale);
+
+        scene.getObjectByName('cylinder').rotation.z += control.rotationSpeed2;
+
+        scene.getObjectByName('tours').rotation.z += 0.05;
+        requestAnimationFrame(render);
+        stats.update();
+    }
+
+    // calls the init function when the window is done loading.
+    window.onload = init;
+
+</script>
+
+</body>
+</html>
