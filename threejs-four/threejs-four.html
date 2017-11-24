@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>03.01 - Make the camera follow an object</title>
+    <script src="./libs/three.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<script>
+    var renderer;
+    var scene;
+    var camera;
+
+    var control;
+    var camControl;
+
+    function init() {
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        camera.position.x = 15;
+        camera.position.y = 6;
+        camera.position.z = 15;
+        camera.lookAt(scene.position);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(0x000000, 1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
+
+        var spotLight = new THREE.SpotLight();
+        spotLight.position.set(0, 80, 30);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        document.body.appendChild(renderer.domElement);
+        addFloor();
+        addRail();
+        addSphere();
+        render();
+    }
+
+    function addFloor() {
+        var floorGeom = new THREE.PlaneGeometry(100,100,20,20);
+        var floorMater = new THREE.MeshPhongMaterial();
+        floorMater.map = THREE.ImageUtils.loadTexture('http://10.1.26.29:84/assets/textures/06_DIFFUSE.jpg');
+        //沿着(S)x,(T)y方向允许纹理重复自己
+        floorMater.map.wrapS = floorMater.map.wrapT = THREE.REpeatWrapping;
+        //material.map.repeat.set(repeatX,repeatY);repeatX：指定在x轴方向多久重复一次。repeatY：指定在y轴方向多久重复一次。
+        //如果设置为1，都不会重复。 如果设置<1，纹理就会被放大。 如果设置为负数，就会产生纹理镜像。
+        floorMater.map.repeat.set(10,10);
+        var floor = new THREE.Mesh(floorGeom,floorMater);
+        floor.receiveShadow = true;
+        floor.rotation.x = -0.5 * Math.PI;
+        scene.add(floor);
+    }
+
+    function addRail() {
+        var cylinderGeometry = new THREE.CylinderGeometry(0.1, 0.1,15,50,50);
+        var cylinderMaterial = new THREE.MeshPhongMaterial({color:0xeeeeee});
+        var cylinder = new THREE.Mesh(cylinderGeometry,cylinderMaterial);
+        cylinder.position.set(1,5,1);
+        cylinder.rotation.x = '15';
+        cylinder.rotation.y = '-57.8';
+        cylinder.rotation.z = '-14.85';
+        cylinder.name = 'cylinder';
+        scene.add(cylinder);
+    }
+
+    function addSphere() {
+        var sphereGeometry = new THREE.SphereGeometry(0.8, 25, 25);
+        var sphereMaterial = new THREE.MeshBasicMaterial({specular: '#a9fcff',emissive: '#006063',shininess: 10});
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(7,0.8,-1);
+        sphere.castShadow = true;
+        var texture = new THREE.ImageUtils.loadTexture("http://10.1.26.29:84/assets/football.jpg");
+        sphereMaterial.map = texture;
+        sphere.name = 'sphere';
+        scene.add(sphere);
+    }
+    var step = 0;
+    function render() {
+        var sphere = scene.getObjectByName('sphere');
+        renderer.render(scene, camera);
+        camera.lookAt(sphere.position);
+        step += 0.02;
+        sphere.position.x = 0 + ( 10 * (Math.cos(step)));
+        sphere.position.y = 0.75 * Math.PI / 2 + ( 6.5 * Math.abs(Math.sin(step)));
+        sphere.rotation.z += 0.03;
+
+        var x = camera.position.x;
+        var z = camera.position.z;
+
+        camera.position.x = x * Math.cos(0.015) + z * Math.sin(0.015);
+        camera.position.z = z * Math.cos(0.015) - x * Math.sin(0.015);
+
+
+        requestAnimationFrame(render);
+    }
+
+    function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.onload = init;
+    window.addEventListener('resize', onResize, false);
+</script>
+<body>
+</body>
+</html>
